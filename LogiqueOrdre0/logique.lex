@@ -23,9 +23,6 @@ implique	{
 			yylval.lettre = yytext[0];
 			return imp_;
 		}
-equivaut	{return '-';}
-et	{return '&';}
-ou	{return '^';}
 \{	{return '{';}
 \}	{return '}';}
 \)	{return ')';}
