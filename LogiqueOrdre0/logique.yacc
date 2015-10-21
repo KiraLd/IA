@@ -15,7 +15,7 @@
 	int indice(char c);
 	void nettoyage();
 	void afficher();
-	
+	void traitement();
 %}
 %union {int ival; char lettre;}
 %token <lettre>var
@@ -27,7 +27,7 @@
 %type <lettre>SYMBOLE
 %start DEFINITION
 %%
-DEFINITION	:	NB_SYMBOLE NB_REGLE	ALPHABET	FAITS	LISTE_REGLES	{afficher();nettoyage();printf("\ntraitement\n");}
+DEFINITION	:	NB_SYMBOLE NB_REGLE	ALPHABET	FAITS	LISTE_REGLES	{traitement();nettoyage();}
 		;
 
 
@@ -56,8 +56,11 @@ NB_REGLE	:	NOMBRE	{
 				}
 		;
 
-ALPHABET	:	'{'	LISTE_SYMBOLE	'}'	{printf("\n");}
+ALPHABET	:	OUVRANT_ALPHABET	LISTE_SYMBOLE	'}'	{printf("\n");}
 		;
+
+OUVRANT_ALPHABET	:	'{'	{printf("Alphabet:");}
+			;
 
 LISTE_SYMBOLE	:	SYMBOLE	LISTE_SYMBOLE	
 		|	
@@ -89,7 +92,7 @@ SYMBOLE	:	var	{
 FAITS	:	OUVRANT	LISTE_SYMBOLE	FERMANT	{printf("\n");}
 	;
 
-OUVRANT	:	'('	{compteur = -1;}
+OUVRANT	:	'('	{compteur = -1; printf("Base de fait: ");}
 	;
 
 FERMANT	:	')'	{compteur = -2;}
@@ -99,7 +102,10 @@ LISTE_REGLES	:	REGLE	LISTE_REGLES
 		|
 		;
 
-REGLE	:	'*'	OUVRANT_REGLE	LISTE_SYMBOLE	FERMANT_REGLE	IMPLIQUE	SYMBOLE	{printf("\n");}
+REGLE	:	ETOILE	OUVRANT_REGLE	LISTE_SYMBOLE	FERMANT_REGLE	IMPLIQUE	SYMBOLE	{printf("\n");}
+	;
+
+ETOILE	:	'*'	{printf("%d)",compteur_regle+2);}
 	;
 
 OUVRANT_REGLE	:	'{'	{compteur_regle++;compteur = -2;}
@@ -158,6 +164,48 @@ void nettoyage()
 	}
 	free(matrice);
 	fclose(yyin);
+}
+
+void traitement()
+{
+	int* temp = (int*)malloc(sizeof(int)*alphabet);
+	int i,ajout,arret,j,fait,k;
+	for(i=0; i < alphabet; i++)
+	{
+		temp[i] = faits[i];
+	}
+	int valide;
+	do
+	{
+		arret = 0;
+		for(i = 0; i < regle; i++)
+		{
+			valide = 1;
+			k = 0;
+			ajout = 0;
+			while(valide && k < alphabet)
+			{
+				if(matrice[i][k] == 1 && temp[k] != 1)
+				{
+					valide = 0;
+				}
+				if(matrice[i][k] == 2 && temp[k] != 1)
+				{
+					fait = k;
+					arret = 1;
+					ajout = 1;
+				}
+				k++;
+			}
+			if(valide && ajout)
+			{
+				temp[fait] = 1;
+				printf("\nAjout à la base de faits de %c par la règle %d",lettres[fait],i+1);
+			}
+		}
+	}
+	while(arret);
+	printf("\n");
 }
 int main(int argc, char* argv[])
 {
